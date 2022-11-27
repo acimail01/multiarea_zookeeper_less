@@ -1,0 +1,34 @@
+version: '3.8'
+services:
+  kafka:
+    image: confluentinc/cp-kafka
+    container_name: kafka
+    extra_hosts:
+      - "node1:192.168.94.131"
+      - "node2:192.168.94.132"
+      - "node3:192.168.94.133"
+    environment:
+      KAFKA_NODE_ID: 2
+#      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+#      KAFKA_LISTENERS: PLAINTEXT://kafka:9092,CONTROLLER://kafka:9293
+#      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_LISTENERS: PLAINTEXT://kafka:9092,CONTROLLER://kafka:9293,PLAINTEXT_HOST://0.0.0.0:9292
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:9292
+
+
+
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@node1:9193,2@node2:9293,3@node3:9393"
+      KAFKA_PROCESS_ROLES: 'broker,controller'
+#      KAFKA_LOG4J_LOGGERS: kafka=${LOGLEVEL1},kafka.network.RequestChannel=${LOGLEVEL1},kafka.producer.async.DefaultEventHandler=${LOGLEVEL2},kafka.request.logger=${LOGLEVEL1},kafka.controller=${LOGLEVEL2},kafka.log.LogCleaner=${LOGLEVEL2},state.change.logger=${LOGLEVEL2},kafka.authorizer.logger=${LOGLEVEL1},org.apache.kafka=${LOGLEVEL1},kafka.cluster=${LOGLEVEL1},kafka.coordinator=${LOGLEVEL1},kafka.log=${LOGLEVEL1},kafka.server=${LOGLEVEL1},kafka.zookeeper=${LOGLEVEL1},org.apache.zookeeper=${LOGLEVEL1}
+    command: "bash -c '/tmp/run_workaround.sh && /etc/confluent/docker/run'"
+    ports:
+      - "9092:9092"
+      - "9292:9292"
+      - "9293:9293"
+    volumes:
+      - "/etc/localtime:/etc/localtime:ro"
+      - "/etc/timezone:/etc/timezone:ro"
+      - ./run_workaround.sh:/tmp/run_workaround.sh
